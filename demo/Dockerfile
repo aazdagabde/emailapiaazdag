@@ -23,7 +23,7 @@ WORKDIR /app
 
 # Copier le JAR généré depuis l’étape précédente
 # Vérifie le nom réel dans build/libs après le build (par ex. pf-v1.jar)
-COPY --from=build /home/gradle/app/build/libs/pf-v1.jar app.jar
+COPY --from=build /home/gradle/app/build/libs/demo-v1.jar app.jar
 
 EXPOSE 8080
 
