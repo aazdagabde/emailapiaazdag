@@ -1,0 +1,5 @@
+package com.aazdag.pf.controller;
+
+public class ContactController {
+
+}

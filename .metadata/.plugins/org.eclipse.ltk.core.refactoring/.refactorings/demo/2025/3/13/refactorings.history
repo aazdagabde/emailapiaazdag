@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;demo/src/main/java/com/aazdag/pf/ContactForm.java&apos; to &apos;dto&apos;" description="Rename resource &apos;ContactForm.java&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/main/java/com/aazdag/pf/ContactForm.java" name="dto" stamp="1743055011673" updateReferences="true"/>
+</session>
