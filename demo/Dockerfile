@@ -1,34 +1,30 @@
-# Étape 1 : Build
+# Étape 1 : Construction (build)
 FROM gradle:7.6.1-jdk17-alpine AS build
 
-# On switch en root provisoirement pour créer/réassigner les permissions
+# Passer root pour configurer les permissions
 USER root
-
-# Créer un dossier de travail
 RUN mkdir -p /home/gradle/app && chown -R gradle:gradle /home/gradle
 
-# Repasse à l’utilisateur gradle
+# Revenir à l’utilisateur gradle
 USER gradle
 WORKDIR /home/gradle/app
 
-# Copier le code source avec les droits adéquats
+# Copier le code source (build.gradle, settings.gradle, src/...) 
+# avec les droits pour 'gradle'
 COPY --chown=gradle:gradle . /home/gradle/app
 
-# Construire l'application
-# --no-daemon pour éviter les soucis de daemon si on veut plus de logs
-# --stacktrace pour avoir un diagnostic précis en cas de problème
+# Construire (désactivation des tests pour aller plus vite, facultatif)
 RUN gradle build -x test --no-daemon --stacktrace
 
-# Étape 2 : Image de runtime
+# Étape 2 : Image de runtime (JRE seulement)
 FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-# Copier le jar généré depuis la phase de build
-# Vérifie le nom du jar dans "build/libs" après compilation
-COPY --from=build /home/gradle/app/build/libs/demo-v1.jar app.jar
+# Copier le JAR généré depuis l’étape précédente
+# Vérifie le nom réel dans build/libs après le build (par ex. pf-v1.jar)
+COPY --from=build /home/gradle/app/build/libs/pf-v1.jar app.jar
 
-# Exposer le port 8080 (optionnel, Render injectera aussi $PORT)
 EXPOSE 8080
 
 # Lancer l’appli Spring Boot
