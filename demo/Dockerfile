@@ -1,31 +1,27 @@
-# Étape 1 : Construction (build)
-FROM gradle:7.6.1-jdk17-alpine AS build
-
-# Passer root pour configurer les permissions
-USER root
-RUN mkdir -p /home/gradle/app && chown -R gradle:gradle /home/gradle
-
-# Revenir à l’utilisateur gradle
-USER gradle
-WORKDIR /home/gradle/app
-
-# Copier le code source (build.gradle, settings.gradle, src/...) 
-# avec les droits pour 'gradle'
-COPY --chown=gradle:gradle . /home/gradle/app
-
-# Construire (désactivation des tests pour aller plus vite, facultatif)
-RUN gradle build -x test --no-daemon --stacktrace
-
-# Étape 2 : Image de runtime (JRE seulement)
-FROM eclipse-temurin:17-jre-alpine
+# Étape 1 : Build
+FROM eclipse-temurin:17-jdk-alpine AS build
+# (ou gradle:7.6.1-jdk17-alpine, mais si tu as la wrapper c'est facultatif)
 
 WORKDIR /app
 
-# Copier le JAR généré depuis l’étape précédente
-# Vérifie le nom réel dans build/libs après le build (par ex. pf-v1.jar)
-COPY --from=build /home/gradle/app/build/libs/demo-v1.jar app.jar
+# Copier seulement les fichiers nécessaires au wrapper et à la config
+COPY gradlew /app/
+COPY gradle /app/gradle
+COPY build.gradle settings.gradle /app/
+COPY src /app/src
 
+# Rendre gradlew exécutable
+RUN chmod +x /app/gradlew
+
+# Supprimer le cache pour être certain de retélécharger
+RUN rm -rf /root/.gradle/caches
+
+# Lancer la build via ./gradlew
+RUN ./gradlew build -x test --no-daemon --stacktrace
+
+# Étape 2 : Runtime
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+COPY --from=build /app/build/libs/demo-v1.jar app.jar
 EXPOSE 8080
-
-# Lancer l’appli Spring Boot
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]
